@@ -1,0 +1,15 @@
+{
+    "label": null,
+    "kind": 1,
+    "additionalTextEdits": [
+        {
+            "range": null,
+            "newText": "new text"
+        }
+    ],
+    "commitCharacters": [
+        ";",
+        "/",
+        "."
+    ]
+}

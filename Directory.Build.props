@@ -1,0 +1,47 @@
+<Project>
+    <PropertyGroup>
+        <Company>OmniSharp</Company>
+        <Copyright>Copyright OmniSharp and contributors © 2018</Copyright>
+        <Authors>David Driscoll</Authors>
+        <LangVersion>preview</LangVersion>
+        <Features>strict</Features>
+        <Nullable>enable</Nullable>
+        <SignAssembly>true</SignAssembly>
+        <DelaySign>false</DelaySign>
+        <PackageIcon>images/packageicon.png</PackageIcon>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageProjectUrl>https://github.com/OmniSharp/csharp-language-server-protocol</PackageProjectUrl>
+        <PackageTags>lsp;language server;language server protocol;language client;language server client</PackageTags>
+        <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\lsp.snk</AssemblyOriginatorKeyFile>
+        <!-- See: https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview -->
+        <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+        <LangVersion>preview</LangVersion>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <NukeTelemetryVersion>1</NukeTelemetryVersion>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+    <PropertyGroup>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <AllowedOutputExtensionsInPackageBuildOutputFolder
+        >$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+        <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.pdb</AllowedReferenceRelatedFileExtensions>
+    </PropertyGroup>
+    <PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    </PropertyGroup>
+    <ItemGroup>
+        <None
+            Include="$(MSBuildThisFileDirectory)/.nuke/temp/packageicon.png"
+            Condition="Exists('$(MSBuildThisFileDirectory)/.nuke/temp/packageicon.png')"
+            Pack="true"
+            PackagePath="/images/"
+            Visible="false"
+        />
+        <None Include="$(MSBuildThisFileDirectory)/LICENSE" Pack="true" PackagePath="/" Visible="false" />
+    </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+image: Visual Studio 2019
+environment:
+  nuget_org_apikey:
+    secure: lFaEHVRMsSWTveDH/DuLl4+hv+O0i4qLkbhW3aCgzq0oCrOuV+0TSEkqe6aiHuNX
+  myget_apikey:
+    secure: eoBrSWDtOXSxyUOoCSTyQCeDkvU18W67pE3w26viEUBRi1K4Tru0cTjUtDUB7l9V
+build_script:
+  - ps: .\build.ps1
+test: off
+after_build:
+  - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
+  - pip install codecov
+  - codecov -f "./artifacts/coverage/coverage.xml"
+artifacts:
+  - path: ./artifacts/nuget/*.nupkg
+nuget:
+  project_feed: true

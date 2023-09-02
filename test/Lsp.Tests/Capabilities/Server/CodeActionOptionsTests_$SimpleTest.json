@@ -1,0 +1,7 @@
+{
+    "codeActionKinds": [
+        "quickfix",
+        "refactor"
+    ],
+    "resolveProvider": true
+}

@@ -1,0 +1,4 @@
+-- This is the last commit we caught up with https://github.com/microsoft/debug-adapter-protocol/commits/gh-pages
+lastSha: eded56aa372c7921205fad496e87f57d2adf176d
+
+https://github.com/microsoft/debug-adapter-protocol/compare/eded56aa372c7921205fad496e87f57d2adf176d..gh-pages

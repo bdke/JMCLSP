@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>net6.0</TargetFrameworks>
+        <WarningsAsErrors>true</WarningsAsErrors>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\JsonRpc\JsonRpc.csproj" />
+        <ProjectReference Include="..\..\src\JsonRpc.Testing\JsonRpc.Testing.csproj" />
+        <EmbeddedResource Include="**/*.jsrpc" />
+        <ProjectReference Include="..\TestingUtils\TestingUtils.csproj" />
+    </ItemGroup>
+</Project>

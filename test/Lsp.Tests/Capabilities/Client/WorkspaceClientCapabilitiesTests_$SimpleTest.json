@@ -1,0 +1,18 @@
+{
+    "applyEdit": true,
+    "workspaceEdit": {
+        "documentChanges": true
+    },
+    "didChangeConfiguration": {
+        "dynamicRegistration": true
+    },
+    "didChangeWatchedFiles": {
+        "dynamicRegistration": true
+    },
+    "symbol": {
+        "dynamicRegistration": true
+    },
+    "executeCommand": {
+        "dynamicRegistration": true
+    }
+}

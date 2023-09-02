@@ -1,0 +1,28 @@
+{
+    "capabilities": {
+        "codeActionProvider": {
+            "codeActionKinds": [
+                "quickfix"
+            ]
+        },
+        "renameProvider": {
+            "prepareProvider": true
+        },
+        "experimental": {},
+        "typeDefinitionProvider": {
+            "id": "foo"
+        },
+        "implementationProvider": {
+            "id": "foo"
+        },
+        "colorProvider": {
+            "id": "foo"
+        },
+        "foldingRangeProvider": {
+            "id": "foo"
+        },
+        "declarationProvider": {
+            "id": "foo"
+        }
+    }
+}
