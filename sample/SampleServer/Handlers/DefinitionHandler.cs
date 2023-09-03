@@ -33,7 +33,7 @@ namespace JMCLSP.Handlers
                 var token = file.Lexer.GetJMCToken(request.Position);
                 if (token != null)
                 {
-                    _logger.LogInformation($"Token on Postion Line:${token.Position.Line}, Character:${token.Position.Character} {LoggerHelper.ObjectToJson(token)}");
+                    _logger.LogInformation($"{LoggerHelper.ObjectToJson(token)}");
                 }
                 return link;
             }

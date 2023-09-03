@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace JMCLSP.Lexer.Types
+namespace JMCLSP.Lexer.JMC.Types
 {
     internal class JMCToken
     {
