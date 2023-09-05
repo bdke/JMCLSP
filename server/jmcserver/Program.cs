@@ -20,7 +20,6 @@ namespace JMCLSP
 
         private static async Task Main(string[] args)
         {
-
             Log.Logger = new LoggerConfiguration()
                         .Enrich.FromLogContext()
                         .WriteTo.File("jmclsp.log", rollingInterval: RollingInterval.Day)
@@ -130,6 +129,7 @@ namespace JMCLSP
                        .OnStarted(
                             async (languageServer, token) =>
                             {
+                                languageServer.LogInfo(PublicData.LogPath);
                                 languageServer.LogInfo("Server Started");
                             }
                         )

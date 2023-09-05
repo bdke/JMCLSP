@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "JMCLSP": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
