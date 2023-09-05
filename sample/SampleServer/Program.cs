@@ -27,6 +27,8 @@ namespace JMCLSP
                         .MinimumLevel.Verbose()
                         .CreateLogger();
 
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             var server = await LanguageServer.From(
                 options =>
                     options
@@ -134,6 +136,11 @@ namespace JMCLSP
             ).ConfigureAwait(false);
 
             await server.WaitForExit.ConfigureAwait(false);
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Log.Fatal(e.ExceptionObject.ToString());
         }
     }
 

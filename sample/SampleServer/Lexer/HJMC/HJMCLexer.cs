@@ -8,7 +8,7 @@ using JMCLSP.Lexer.HJMC.Types;
 
 namespace JMCLSP.Lexer.HJMC
 {
-    internal class HJMCLexer
+    public class HJMCLexer
     {
         public List<HJMCToken> Tokens = new();
         private string RawText { get; set; }

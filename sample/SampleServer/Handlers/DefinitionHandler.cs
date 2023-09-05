@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using JMCLSP.Datas;
 using JMCLSP.Helper;
+using JMCLSP.Lexer.JMC;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;

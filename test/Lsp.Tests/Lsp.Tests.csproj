@@ -9,6 +9,7 @@
         <EmbeddedResource Include="**\*.json" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\sample\SampleServer\JMCLSP.csproj" />
         <ProjectReference Include="..\..\src\Client\Client.csproj" />
         <ProjectReference Include="..\..\src\Server\Server.csproj" />
         <ProjectReference Include="..\..\src\Protocol\Protocol.csproj" />
@@ -19,12 +20,6 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
         <PackageReference Include="Microsoft.Extensions.Options" />
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
-        <ProjectReference
-            Include="..\..\src\JsonRpc.Generators\JsonRpc.Generators.csproj"
-            IncludeAssets="analyzers"
-            ExcludeAssets="compile;runtime;native"
-            PrivateAssets="contentfiles;build;buildMultitargeting;buildTransitive"
-            OutputItemType="Analyzer"
-        />
+        <ProjectReference Include="..\..\src\JsonRpc.Generators\JsonRpc.Generators.csproj" IncludeAssets="analyzers" ExcludeAssets="compile;runtime;native" PrivateAssets="contentfiles;build;buildMultitargeting;buildTransitive" OutputItemType="Analyzer" />
     </ItemGroup>
 </Project>

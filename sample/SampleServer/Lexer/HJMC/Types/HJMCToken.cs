@@ -7,7 +7,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace JMCLSP.Lexer.HJMC.Types
 {
-    internal class HJMCToken
+    public class HJMCToken
     {
         public HJMCTokenType Type { get; set; }
         public List<string> Values { get;set; }

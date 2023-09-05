@@ -1,4 +1,4 @@
-namespace LexerTest
+namespace JMCLSP.Tests
 {
     public class UnitTest1
     {

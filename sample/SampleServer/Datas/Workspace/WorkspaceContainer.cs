@@ -11,8 +11,10 @@ namespace JMCLSP.Datas.Workspace
     {
         public JMCFile? GetJMCFile(DocumentUri uri)
         {
-            foreach (var item in this)
+            var items = ToArray().AsSpan();
+            for (var i = 0; i < items.Length; i++)
             {
+                ref var item = ref items[i];
                 var f = item.FindJMCFile(uri);
                 if (f != null)
                 {

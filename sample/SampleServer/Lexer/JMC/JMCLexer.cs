@@ -5,22 +5,22 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using JMCLSP.Lexer.JMC.Types;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace JMCLSP.Lexer.JMC
 {
-    internal class JMCLexer
+    public class JMCLexer
     {
         public static Regex SPLIT_PATTERN =
             new(@"(\/\/.*)|(\`(?:.|\s)*\`)|(\b-?\d*\.?\d+\b)|([""\'].*[""\'])|(\s|\;|\{|\}|\[|\]|\(|\)|\|\||&&|==|!=|[\<\>]\=|[\<\>]|!|,|:|\=\>|[\+\-\*\%\/]\=|[\+\-\*\%\/])");
 
         public List<JMCToken> Tokens { get; set; } = new();
-
-        private string RawText { get; set; }
-        private string[] SplitedText { get; set; }
-        private string[] TrimmedText { get; set; }
+        public string RawText { get; set; }
 
         /// <summary>
         /// initialize the JMC lexer
@@ -29,17 +29,29 @@ namespace JMCLSP.Lexer.JMC
         public JMCLexer(string text)
         {
             RawText = text;
-            SplitedText = SPLIT_PATTERN.Split(RawText);
-            TrimmedText = SplitedText.Select(x => x.Trim()).ToArray();
+            InitTokens();
+        }
+
+        public async Task InitTokensAsync() => InitTokens();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void InitTokens()
+        {
+            Tokens.Clear();
+
+            var splitedText = SPLIT_PATTERN.Split(RawText);
+            var trimmedText = splitedText.Select(x => x.Trim()).ToArray();
             var currentPos = 0;
 
-            var arr = TrimmedText.AsSpan();
-            for (var i = 0; i < TrimmedText.Length; i++)
+            var arr = trimmedText.AsSpan();
+            for (var i = 0; i < trimmedText.Length; i++)
             {
-                ref var value = ref TrimmedText[i];
+                ref var value = ref trimmedText[i];
                 if (string.IsNullOrEmpty(value))
                 {
-                    currentPos += SplitedText[i].Length;
+                    currentPos += splitedText[i].Length;
                     continue;
                 }
 
@@ -48,8 +60,22 @@ namespace JMCLSP.Lexer.JMC
                 {
                     Tokens.Add(token);
                 }
-                currentPos += SplitedText[i].Length;
+                currentPos += splitedText[i].Length;
             }
+        }
+
+        public async Task ChangeRawTextAsync(TextDocumentContentChangeEvent change) => ChangeRawText(change);
+
+        public void ChangeRawText(TextDocumentContentChangeEvent change)
+        {
+            var r = change.Range;
+            if (r == null)
+                return;
+
+            var start = PositionToOffset(r.Start) + 1;
+            var length = change.RangeLength;
+
+            RawText = RawText.Remove(start, length).Insert(start, change.Text);
         }
 
         /// <summary>
@@ -73,7 +99,7 @@ namespace JMCLSP.Lexer.JMC
         }
 
         /// <summary>
-        /// 
+        /// get a token by <see cref="Position"/>
         /// </summary>
         /// <param name="pos"></param>
         /// <returns></returns>
@@ -97,11 +123,39 @@ namespace JMCLSP.Lexer.JMC
         }
 
         /// <summary>
-        /// 
+        /// Convert offset to <see cref="Position"/>
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        private int PositionToOffset(Position pos)
+        {
+            var line = pos.Line;
+
+            var currentLine = 0;
+            var offset = 0;
+
+            var chars = RawText.ToCharArray().AsSpan();
+            for (; offset < RawText.Length; offset++)
+            {
+                ref var c = ref chars[offset];
+                if (c == '\r')
+                {
+                    offset++;
+                    currentLine++;
+                }
+                else if (c == '\n') currentLine++;
+                if (currentLine == line) break;
+            }
+
+            return offset += pos.Character;
+        }
+
+        /// <summary>
+        /// get <see cref="Position"/> by offset of the text
         /// </summary>
         /// <param name="offset"></param>
-        /// <param name="text"></param>
-        /// <returns></returns>
+        /// <param name="text">the whole document text</param>
+        /// <returns><see cref="Position"/> of the offset</returns>
         private static Position OffsetToPosition(int offset, string text)
         {
             var line = 0;
@@ -126,10 +180,10 @@ namespace JMCLSP.Lexer.JMC
         }
 
         /// <summary>
-        /// 
+        /// get type of the <see cref="string"/>
         /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
+        /// <param name="text">string that required to be parsed</param>
+        /// <returns><see cref="JMCTokenType"/> or <see cref="JMCTokenType.UNKNOWN"/> if it can't recognize</returns>
         private static JMCTokenType GetTokenType(string text)
         {
             switch (text)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace JMCLSP.Lexer.JMC.Types
 {
-    internal enum JMCTokenType
+    public enum JMCTokenType
     {
         UNKNOWN,
         FUNCTION,

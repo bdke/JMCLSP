@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using JMCLSP.Helper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol;
@@ -25,7 +27,7 @@ namespace JMCLSP.Handlers
             }
         );
 
-        public TextDocumentSyncKind Change { get; } = TextDocumentSyncKind.Full;
+        public TextDocumentSyncKind Change { get; } = TextDocumentSyncKind.Incremental;
 
         public TextDocumentHandler(ILogger<TextDocumentHandler> logger)
         {
@@ -36,10 +38,28 @@ namespace JMCLSP.Handlers
             _logger.LogDebug($"Opened Document: ${request.TextDocument.Uri}");
             return Unit.Task;
         }
-        public override Task<Unit> Handle(DidChangeTextDocumentParams request, CancellationToken cancellationToken)
+        public override async Task<Unit> Handle(DidChangeTextDocumentParams request, CancellationToken cancellationToken)
         {
+            foreach (var change in request.ContentChanges)
+            {
+                var doc = PublicData.Workspaces.GetJMCFile(request.TextDocument.Uri);
+                if (doc == null)
+                    continue;
+                var lexer = doc.Lexer;
+
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                await lexer.ChangeRawTextAsync(change);
+                await lexer.InitTokensAsync();
+                stopwatch.Stop();
+
+                _logger.LogInformation($"Time elapsed for tokenizing: {stopwatch.ElapsedMilliseconds}");
+
+                _logger.LogDebug($"{lexer.RawText}");
+                _logger.LogDebug($"{LoggerHelper.ObjectToJson(change)}");
+            }
             _logger.LogDebug($"Changed Document: ${request.TextDocument.Uri}");
-            return Unit.Task;
+            return Unit.Value;
         }
         public override Task<Unit> Handle(DidSaveTextDocumentParams request, CancellationToken cancellationToken) {
             _logger.LogDebug($"Saved Document: ${request.TextDocument.Uri}");
