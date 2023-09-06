@@ -2,6 +2,7 @@
   "profiles": {
     "JMCLSP": {
       "commandName": "Project",
+      "commandLineArgs": "-lsp -d",
       "nativeDebugging": false
     }
   }

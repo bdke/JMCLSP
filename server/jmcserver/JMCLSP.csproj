@@ -9,6 +9,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Resource\1_20_1_commands.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resource\1_20_1_commands.json" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="../../src/Server/Server.csproj" />
         <PackageReference Include="Microsoft.Extensions.Logging" VersionOverride="6.0.0" />
         <PackageReference Include="Microsoft.VisualStudio.Text.Data" />

@@ -1,11 +1,6 @@
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using JMCLSP.Handlers;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Window;
@@ -22,9 +17,10 @@ namespace JMCLSP
         {
             Log.Logger = new LoggerConfiguration()
                         .Enrich.FromLogContext()
-                        .WriteTo.File("jmclsp.log", rollingInterval: RollingInterval.Day)
+                        .WriteTo.File($"{StaticData.LogPath}/jmclsp.log", rollingInterval: RollingInterval.Day)
                         .MinimumLevel.Verbose()
                         .CreateLogger();
+            var data = new StaticData();
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
@@ -122,14 +118,14 @@ namespace JMCLSP
                                 foreach (var folder in folders)
                                 {
                                     var workspace = new Datas.Workspace.Workspace(folder.Uri);
-                                    PublicData.Workspaces.Add(workspace);
+                                    StaticData.Workspaces.Add(workspace);
                                 }
                             }
                         )
                        .OnStarted(
                             async (languageServer, token) =>
                             {
-                                languageServer.LogInfo(PublicData.LogPath);
+                                languageServer.LogInfo(StaticData.LogPath);
                                 languageServer.LogInfo("Server Started");
                             }
                         )

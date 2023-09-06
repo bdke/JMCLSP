@@ -1,15 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using JMCLSP.Lexer.JMC.Types;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Serilog;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace JMCLSP.Lexer.JMC
@@ -32,10 +23,8 @@ namespace JMCLSP.Lexer.JMC
             InitTokens();
         }
 
-        public async Task InitTokensAsync() => InitTokens();
-
         /// <summary>
-        /// 
+        /// initialize the tokens of the text
         /// </summary>
         public void InitTokens()
         {
@@ -64,8 +53,10 @@ namespace JMCLSP.Lexer.JMC
             }
         }
 
-        public async Task ChangeRawTextAsync(TextDocumentContentChangeEvent change) => ChangeRawText(change);
-
+        /// <summary>
+        /// modify the text of the lexer
+        /// </summary>
+        /// <param name="change"></param>
         public void ChangeRawText(TextDocumentContentChangeEvent change)
         {
             var r = change.Range;
@@ -284,5 +275,17 @@ namespace JMCLSP.Lexer.JMC
             else if (new Regex(@"^(?![0-9])\S+$").IsMatch(text)) return JMCTokenType.LITERAL;
             else return JMCTokenType.UNKNOWN;
         }
+
+        /// <summary>
+        /// <inheritdoc cref="ChangeRawText(TextDocumentContentChangeEvent)"/>
+        /// </summary>
+        /// <returns></returns>
+        public async Task ChangeRawTextAsync(TextDocumentContentChangeEvent change) => ChangeRawText(change);
+
+        /// <summary>
+        /// <inheritdoc cref="InitTokens"/>
+        /// </summary>
+        /// <returns></returns>
+        public async Task InitTokensAsync() => InitTokens();
     }
 }

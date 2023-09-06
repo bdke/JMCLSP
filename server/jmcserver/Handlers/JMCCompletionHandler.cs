@@ -15,7 +15,7 @@ namespace JMCLSP.Handlers
         public override async Task<CompletionItem> Handle(CompletionItem request, CancellationToken cancellationToken) => request;
         public override async Task<CompletionList> Handle(CompletionParams request, CancellationToken cancellationToken)
         {
-            var file = PublicData.Workspaces.GetJMCFile(request.TextDocument.Uri);
+            var file = StaticData.Workspaces.GetJMCFile(request.TextDocument.Uri);
             if (file == null)
             {
                 return new();

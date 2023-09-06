@@ -10,7 +10,7 @@ import { workspace, ExtensionContext } from "vscode";
 import {
     LanguageClient,
     LanguageClientOptions, ServerOptions,
-    TransportKind
+    TransportKind, createServerPipeTransport
 } from "vscode-languageclient/node";
 import { Trace } from "vscode-jsonrpc/node";
 
@@ -29,13 +29,13 @@ export function activate(context: ExtensionContext) {
         // run: { command: serverExe, args: ['-lsp', '-d'] },
         run: {
             command: serverExe,
-            args: ["C:\\Users\\User\\Documents\\Github\\JMC-Syntax-Highlighting-cslsp\\sample\\SampleServer\\bin\\Debug\\net6.0\\win7-x64\\JMCLSP.dll"],
+            args: ["C:\\Users\\User\\Documents\\Github\\JMC-Syntax-Highlighting-cslsp\\server\\jmcserver\\bin\\Debug\\net6.0\\win7-x64\\JMCLSP.exe"],
             transport: TransportKind.pipe,
         },
         // debug: { command: serverExe, args: ['-lsp', '-d'] }
         debug: {
-            command: serverExe,
-            args: ["C:\\Users\\User\\Documents\\Github\\JMC-Syntax-Highlighting-cslsp\\sample\\SampleServer\\bin\\Debug\\net6.0\\win7-x64\\JMCLSP.dll"],
+            command: "C:\\Users\\User\\Documents\\Github\\JMC-Syntax-Highlighting-cslsp\\server\\jmcserver\\bin\\Debug\\net6.0\\win7-x64\\JMCLSP.exe",
+            args: ["-lsp", "-d"],
             transport: TransportKind.pipe,
             runtime: "",
         },

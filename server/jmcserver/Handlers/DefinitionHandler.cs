@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using JMCLSP.Datas;
 using JMCLSP.Helper;
-using JMCLSP.Lexer.JMC;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
@@ -22,7 +15,7 @@ namespace JMCLSP.Handlers
 
         public override async Task<LocationOrLocationLinks> Handle(DefinitionParams request, CancellationToken cancellationToken)
         {
-            var file = PublicData.Workspaces.GetJMCFile(request.TextDocument.Uri);
+            var file = StaticData.Workspaces.GetJMCFile(request.TextDocument.Uri);
             if (file == null)
             {
                 var link = new List<LocationOrLocationLink>();
