@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Text.RegularExpressions;
 using JMCLSP.Lexer.JMC.Types;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -5,13 +6,40 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace JMCLSP.Lexer.JMC
 {
-    public class JMCLexer
+    public partial class JMCLexer
     {
         public static Regex SPLIT_PATTERN =
-            new(@"(\/\/.*)|(\`(?:.|\s)*\`)|(\b-?\d*\.?\d+\b)|([""\'].*[""\'])|(\s|\;|\{|\}|\[|\]|\(|\)|\|\||&&|==|!=|[\<\>]\=|[\<\>]|!|,|:|\=\>|[\+\-\*\%\/]\=|[\+\-\*\%\/])");
+            new(@"(\/\/.*)|(\`(?:.|\s)*\`)|(-?\d*\.?\b\d+[lbs]?\b)|(\.\.\d+)|([""\'].*[""\'])|(\s|\;|\{|\}|\[|\]|\(|\)|\|\||&&|==|!=|[\<\>]\=|[\<\>]|!|,|:|\=\>|[\+\-\*\%\/]\=|[\+\-\*\%\/]|\=)");
 
         public List<JMCToken> Tokens { get; set; } = new();
         public string RawText { get; set; }
+        private static readonly Dictionary<JMCTokenType, Regex> TokenPatterns = new()
+        {
+            [JMCTokenType.COMMENT] = new Regex(@"^\/\/.*$"),
+            [JMCTokenType.NUMBER] = new Regex(@"^(\b-?\d*\.?\d+\b)$"),
+            [JMCTokenType.STRING] = new Regex(@"^([""\'].*[""\'])$"),
+            [JMCTokenType.MULTILINE_STRING] = new Regex(@"^\`(?:.|\s)*\`$"),
+            [JMCTokenType.VARIABLE] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*$"),
+            [JMCTokenType.VARIABLE_CALL] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*\s*\."),
+            [JMCTokenType.LITERAL] = new Regex(@"^(?![0-9])\S+$")
+            
+        };
+
+        private static readonly Dictionary<JMCTokenType, Regex> CommandTokenPatterns = new()
+        {
+            [JMCTokenType.COMMAND_VARIABLE] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*$"),
+            [JMCTokenType.COMMAND_VARIABLE_CALL] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*\s*\."),
+            [JMCTokenType.COMMAND_INT_OR_LONG] = new Regex(@"^-?\d+$"),
+            [JMCTokenType.COMMAND_FLOAT_OR_DOUBLE] = new Regex(@"^-?\d*\.?\d+[lbs]?$"),
+            [JMCTokenType.COMMAND_LITERAL] = new Regex(@"^\w+$"),
+            [JMCTokenType.COMMAND_VALUE] = new Regex(@"^\S+$")
+        };
+
+        private static readonly JMCTokenType[] VariablesTypes = new JMCTokenType[]
+        {
+            JMCTokenType.VARIABLE, JMCTokenType.VARIABLE_CALL,
+            JMCTokenType.COMMAND_VARIABLE, JMCTokenType.COMMAND_VARIABLE_CALL
+        };
 
         /// <summary>
         /// initialize the JMC lexer
@@ -23,8 +51,53 @@ namespace JMCLSP.Lexer.JMC
             InitTokens();
         }
 
+        #region Query
+
+        public IEnumerable<JMCToken> Variables => Tokens.FindAll(v => VariablesTypes.Contains(v.TokenType));
+        public IEnumerable<JMCToken> FunctionCalls
+        {
+            get
+            {
+                for (var i = 0; i < Tokens.Count; i++)
+                {
+                    if (i + 1 >= Tokens.Count)
+                        yield break;
+
+                    var token = Tokens[i];
+                    var next = Tokens[i + 1];
+                    if (token.TokenType == JMCTokenType.LITERAL &&
+                        next.TokenType == JMCTokenType.LPAREN)
+                    {
+                        yield return token;
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<JMCToken> FunctionDefines
+        {
+            get
+            {
+                for (var i = 0; i < Tokens.Count; i++)
+                {
+                    if (i - 1 == -1)
+                        continue;
+
+                    var token = Tokens[i];
+                    var pre = Tokens[i - 1];
+                    if (token.TokenType == JMCTokenType.LITERAL &&
+                        pre.TokenType == JMCTokenType.FUNCTION)
+                    {
+                        yield return token;
+                    }
+                }
+            }
+        }
+
+        #endregion
+
         /// <summary>
-        /// initialize the tokens of the text
+        /// initialize the tokens of <see cref="RawText"/>
         /// </summary>
         public void InitTokens()
         {
@@ -44,12 +117,76 @@ namespace JMCLSP.Lexer.JMC
                     continue;
                 }
 
-                var token = Tokenize(value, currentPos, Tokens);
+                var token = Tokenize(value, currentPos);
                 if (token != null)
                 {
                     Tokens.Add(token);
                 }
                 currentPos += splitedText[i].Length;
+            }
+            FormatFunctions();
+        }
+
+        /// <summary>
+        /// make function in a class to have a seperator for its value,
+        /// <code>
+        /// "test\0class.test"
+        /// </code>
+        /// </summary>
+        private void FormatFunctions()
+        {
+            var ranges = GetClassRanges();
+            var arr = Tokens.ToArray().AsSpan();
+            for (var i = 0; i < arr.Length; i++)
+            {
+                ref var token = ref arr[i];
+                if (token.TokenType == JMCTokenType.LITERAL && 
+                    Tokens[i - 1].TokenType == JMCTokenType.FUNCTION)
+                {
+                    foreach (var range in ranges)
+                    {
+                        if (range.Value.Contains(token.Position))
+                        {
+                            token.Value += $"\0{range.Key}.{token.Value}";
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// get ranges of the class start and end
+        /// </summary>
+        /// <returns>
+        /// list of <see cref="KeyValuePair"/> contains class name by <see cref="string"/> in Key and 
+        /// <see cref="Range"/> in Value
+        /// </returns>
+        private IEnumerable<KeyValuePair<string, Range>> GetClassRanges()
+        {
+            for (var i = 0;i < Tokens.Count;i++)
+            {
+                var token = Tokens[i];
+                if (token.TokenType == JMCTokenType.CLASS)
+                {
+                    var parenCount = 0;
+                    var className = Tokens[i + 1].Value;
+                    i += 2;
+                    for (; i < Tokens.Count ;i++)
+                    {
+                        var c = Tokens[i];
+                        if (c.TokenType == JMCTokenType.LCP) parenCount++;
+                        else if (c.TokenType == JMCTokenType.RCP) parenCount--;
+                        if (parenCount == 0)
+                        {
+                            var endPos = c.Offset + c.Value.Length;
+                            var startPos = token.Offset;
+                            var end = OffsetToPosition(endPos, RawText);
+                            var start = OffsetToPosition(startPos, RawText);
+                            yield return new(className ,new Range(start, end));
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -70,23 +207,39 @@ namespace JMCLSP.Lexer.JMC
         }
 
         /// <summary>
-        /// Tokenize a string
+        /// Tokenize a <see cref="string"/>
         /// </summary>
         /// <param name="text"></param>
         /// <param name="pos">offset of the text</param>
         /// <param name="parsedTokens">previous tokens</param>
         /// <returns></returns>
-        public JMCToken? Tokenize(string text, int pos, IEnumerable<JMCToken> parsedTokens)
+        public JMCToken? Tokenize(string text, int pos)
         {
             var position = OffsetToPosition(pos, RawText);
-            var type = GetTokenType(text);
-            return new()
+            try
             {
-                Offset = pos,
-                Position = position,
-                TokenType = type,
-                Value = text,
-            };
+                var type = Tokens[^1].TokenType.ToString().StartsWith("COMMAND", StringComparison.CurrentCulture)
+                    ? GetCommandTokenType(text)
+                    : GetTokenType(text);
+                return new()
+                {
+                    Offset = pos,
+                    Position = position,
+                    TokenType = type,
+                    Value = text,
+                };
+            } 
+            catch (ArgumentOutOfRangeException)
+            {
+                var type = GetTokenType(text);
+                return new()
+                {
+                    Offset = pos,
+                    Position = position,
+                    TokenType = type,
+                    Value = text,
+                };
+            }
         }
 
         /// <summary>
@@ -171,11 +324,43 @@ namespace JMCLSP.Lexer.JMC
         }
 
         /// <summary>
+        /// get type of the <see cref="string"/> of a command
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static JMCTokenType GetCommandTokenType(string text)
+        {
+            switch (text)
+            {
+                case "{": return JMCTokenType.COMMAND_LCP; 
+                case "}": return JMCTokenType.COMMAND_RCP;
+                case "[": return JMCTokenType.COMMAND_LMP;
+                case "]": return JMCTokenType.COMMAND_RMP;
+                case "(": return JMCTokenType.COMMAND_LPAREN;
+                case ")": return JMCTokenType.COMMAND_RPAREN;
+                case ";": return JMCTokenType.SEMI;
+                case "^": return JMCTokenType.COMMAND_CARET;
+                case "~": return JMCTokenType.COMMAND_TILDE;
+                default: break;
+            }
+
+            try
+            {
+                var result = CommandTokenPatterns.First(v => v.Value.IsMatch(text)).Key;
+                return result;
+            }
+            catch (InvalidOperationException)
+            {
+                return JMCTokenType.COMMAND_UNKNOWN;
+            }
+        }
+
+        /// <summary>
         /// get type of the <see cref="string"/>
         /// </summary>
         /// <param name="text">string that required to be parsed</param>
         /// <returns><see cref="JMCTokenType"/> or <see cref="JMCTokenType.UNKNOWN"/> if it can't recognize</returns>
-        private static JMCTokenType GetTokenType(string text)
+        public static JMCTokenType GetTokenType(string text)
         {
             switch (text)
             {
@@ -196,6 +381,8 @@ namespace JMCLSP.Lexer.JMC
                     return JMCTokenType.WHILE;
                 case "new":
                     return JMCTokenType.NEW;
+                case "class":
+                    return JMCTokenType.CLASS;
 
                 //brackets
                 case "(":
@@ -217,7 +404,7 @@ namespace JMCLSP.Lexer.JMC
 
                 //boolean ops
                 case "==":
-                    return JMCTokenType.EQUAL;
+                    return JMCTokenType.OP_EQUAL;
                 case "!=":
                     return JMCTokenType.NOT_EQUAL;
                 case ">=":
@@ -244,6 +431,8 @@ namespace JMCLSP.Lexer.JMC
                     return JMCTokenType.REMINDER_EQUAL;
                 case "*=":
                     return JMCTokenType.MULTIPLY_EQUAL;
+                case "=":
+                    return JMCTokenType.OP_EQUAL;
 
                 //operators
                 case "+":
@@ -255,7 +444,7 @@ namespace JMCLSP.Lexer.JMC
                 case "/":
                     return JMCTokenType.DIVIDE;
                 case "%":
-                    return JMCTokenType.REMINDER;
+                    return JMCTokenType.REMAINDER;
 
                 //others
                 case "=>":
@@ -266,16 +455,22 @@ namespace JMCLSP.Lexer.JMC
             }
 
             //special cases
-            if (new Regex(@"^\/\/.*$").IsMatch(text)) return JMCTokenType.COMMENT;
-            else if (new Regex(@"^(\b-?\d*\.?\d+\b)$").IsMatch(text)) return JMCTokenType.NUMBER;
-            else if (new Regex(@"^([""\'].*[""\'])$").IsMatch(text)) return JMCTokenType.STRING;
-            else if (new Regex(@"^\`(?:.|\s)*\`$").IsMatch(text)) return JMCTokenType.MULTILINE_STRING;
-            else if (new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*$").IsMatch(text)) return JMCTokenType.VARIABLE;
-            else if (new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*\s*\.").IsMatch(text)) return JMCTokenType.VARIABLE_CALL;
-            else if (new Regex(@"^(?![0-9])\S+$").IsMatch(text)) return JMCTokenType.LITERAL;
-            else return JMCTokenType.UNKNOWN;
+            try
+            {
+                var result = TokenPatterns.First(v => v.Value.IsMatch(text)).Key;
+                return result == JMCTokenType.LITERAL
+                    && StaticData.CommandData.RootCommands.Contains(text)
+                    ? JMCTokenType.COMMAND_LITERAL
+                    : result;
+            }
+            catch (ArgumentNullException)
+            {
+                return JMCTokenType.UNKNOWN;
+            }
         }
 
+
+        #region AsyncMethods
         /// <summary>
         /// <inheritdoc cref="ChangeRawText(TextDocumentContentChangeEvent)"/>
         /// </summary>
@@ -287,5 +482,6 @@ namespace JMCLSP.Lexer.JMC
         /// </summary>
         /// <returns></returns>
         public async Task InitTokensAsync() => InitTokens();
+        #endregion
     }
 }

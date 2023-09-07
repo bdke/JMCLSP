@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace JMCLSP.Datas
+namespace JMCLSP.Datas.Minecraft.Command
 {
     //TODO: finish the node
     internal class CommandNode
@@ -14,8 +14,7 @@ namespace JMCLSP.Datas
         [JsonRequired]
         public string Type { get; set; }
         [JsonProperty("children")]
-        [JsonRequired]
-        public Dictionary<string, CommandNode> Childrens { get; set; }
+        public Dictionary<string, CommandNode>? Childrens { get; set; }
         [JsonProperty("executable")]
         public bool? Executable { get; set; }
         [JsonProperty("parser")]

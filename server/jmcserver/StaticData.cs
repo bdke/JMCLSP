@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using JMCLSP.Datas;
+using JMCLSP.Datas.Minecraft.Command;
 using JMCLSP.Datas.Workspace;
 using Newtonsoft.Json;
 
@@ -16,12 +16,12 @@ namespace JMCLSP
         public static readonly WorkspaceContainer Workspaces = new();
         public static readonly string LogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Logs");
         public static string MinecraftVersion;
-        public static Dictionary<string, CommandNode> CommandTree { get; set; }
+        public static CommandData CommandData { get; set; }
 
         public StaticData()
         {
             MinecraftVersion = "1.20.1";
-            CommandTree = GetCommandNodes(MinecraftVersion);
+            CommandData = new(GetCommandNodes(MinecraftVersion));
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace JMCLSP
         public static void UpdateVersion(string version)
         {
             MinecraftVersion = version;
-            CommandTree = GetCommandNodes(MinecraftVersion);
+            CommandData = new(GetCommandNodes(MinecraftVersion));
         }
 
         /// <summary>

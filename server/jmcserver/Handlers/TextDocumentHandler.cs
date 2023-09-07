@@ -54,8 +54,6 @@ namespace JMCLSP.Handlers
                 stopwatch.Stop();
 
                 _logger.LogInformation($"Time elapsed for tokenizing: {stopwatch.ElapsedMilliseconds}");
-
-                _logger.LogDebug($"{lexer.RawText}");
                 _logger.LogDebug($"{LoggerHelper.ObjectToJson(change)}");
             }
             _logger.LogDebug($"Changed Document: ${request.TextDocument.Uri}");

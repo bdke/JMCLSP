@@ -9,7 +9,7 @@
         <EmbeddedResource Include="**\*.json" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\sample\SampleServer\JMCLSP.csproj" />
+        <ProjectReference Include="..\..\server\jmcserver\JMCLSP.csproj" />
         <ProjectReference Include="..\..\src\Client\Client.csproj" />
         <ProjectReference Include="..\..\src\Server\Server.csproj" />
         <ProjectReference Include="..\..\src\Protocol\Protocol.csproj" />

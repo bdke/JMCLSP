@@ -1,5 +1,6 @@
 using JMCLSP.Datas;
 using JMCLSP.Helper;
+using JMCLSP.Lexer.JMC.Types;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
@@ -24,11 +25,20 @@ namespace JMCLSP.Handlers
             else
             {
                 var link = new List<LocationOrLocationLink>();
-                var token = file.Lexer.GetJMCToken(request.Position);
-                if (token != null)
+                var lexer = file.Lexer;
+                var lexerTokens = lexer.Tokens;
+                var currentToken = lexer.GetJMCToken(request.Position);
+                if (currentToken == null) return link;
+
+                var tokenIndex = file.Lexer.Tokens.IndexOf(currentToken);
+
+                if (currentToken.TokenType == JMCTokenType.LITERAL &&
+                    lexerTokens[tokenIndex + 1].TokenType == JMCTokenType.LPAREN)
                 {
-                    _logger.LogInformation($"{LoggerHelper.ObjectToJson(token)}");
+
                 }
+
+                _logger.LogInformation($"Definition Token: {LoggerHelper.ObjectToJson(currentToken)}");
                 return link;
             }
         }
