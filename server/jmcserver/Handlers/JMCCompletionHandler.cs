@@ -23,20 +23,42 @@ namespace JMCLSP.Handlers
 
             var list = new List<CompletionItem>();
 
-            
+            var lexer = file.Lexer;
+            var funcs = ExtensionData.Workspaces.GetJMCFunctionDefines()
+                .SelectMany(v => v.Tokens)
+                .DistinctBy(v => v.Value);
+            var vars = ExtensionData.Workspaces.GetJMCVariables()
+                .SelectMany(v => v.Tokens)
+                .Where(v => !v.Value.EndsWith(".get", StringComparison.CurrentCulture))
+                .DistinctBy(v => v.Value);
+
+            foreach ( var func in funcs )
+            {
+                list.Add(new()
+                {
+                    Label = func.Value,
+                    Kind = CompletionItemKind.Function,
+                });
+            }
+
+            foreach ( var v in vars )
+            {
+                list.Add(new() 
+                { 
+                    Label = v.Value[1..],
+                    Kind = CompletionItemKind.Variable, 
+                    InsertText = v.Value
+                });
+            }
 
             return new(list);
         }
         protected override CompletionRegistrationOptions CreateRegistrationOptions(CompletionCapability capability, ClientCapabilities clientCapabilities) => new() 
         {
-            AllCommitCharacters = new string[]
-                {
-                    ".", "#", " ", "/"
-                },
             ResolveProvider = true,
             TriggerCharacters = new string[]
                 {
-                    ".", "#", " ", "/"
+                    ".", "#", " ", "/", "$"
                 },
             DocumentSelector = LanguageSelector.JMC
         };

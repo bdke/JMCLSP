@@ -15,7 +15,6 @@ namespace JMCLSP
     {
         private static async Task Main(string[] args)
         {
-
             Log.Logger = new LoggerConfiguration()
                         .Enrich.FromLogContext()
                         .WriteTo.File($"{ExtensionData.LogPath}/jmclsp.log", rollingInterval: RollingInterval.Day)
@@ -40,6 +39,7 @@ namespace JMCLSP
                         )
                        .WithHandler<TextDocumentHandler>()
                        .WithHandler<DefinitionHandler>()
+                       .WithHandler<JMCCompletionHandler>()
                        .WithServices(x => x.AddLogging(b => b.SetMinimumLevel(LogLevel.Trace)))
                        .WithServices(
                             services =>
@@ -78,7 +78,7 @@ namespace JMCLSP
                                             ResolveProvider = true,
                                             TriggerCharacters = new string[]
                                             {
-                                                ".", "#", " ", "/"
+                                                ".", "#", " ", "/", "$"
                                             }
                                         },
                                         SignatureHelpProvider = new()

@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using JMCLSP.Helper;
 using JMCLSP.Lexer.JMC.Types;
@@ -14,30 +16,55 @@ namespace JMCLSP.Lexer.JMC
         public static Regex SPLIT_PATTERN =
             new(@"(\/\/.*)|(\`(?:.|\s)*\`)|(-?\d*\.?\b\d+[lbs]?\b)|(\.\.\d+)|([""\'].*[""\'])|(\s|\;|\{|\}|\[|\]|\(|\)|\|\||&&|==|!=|[\<\>]\=|[\<\>]|!|,|:|\=\>|[\+\-\*\%\/]\=|[\+\-\*\%\/]|\=)");
 
+        /// <summary>
+        /// Tokens of the lexer
+        /// </summary>
+        /// <remarks>
+        /// DO NOT use this for accessing Variables or Functions,
+        /// Use <see cref="Variables"/> or <see cref="FunctionCalls"/> to access datas
+        /// </remarks>
         public List<JMCToken> Tokens { get; set; } = new();
         public string RawText { get; set; }
+
+        private static readonly RegexOptions _regexOptions = RegexOptions.Compiled;
+
+        /// <summary>
+        /// Pattern for general tokens
+        /// </summary>
         private static readonly Dictionary<JMCTokenType, Regex> TokenPatterns = new()
         {
-            [JMCTokenType.COMMENT] = new Regex(@"^\/\/.*$"),
-            [JMCTokenType.NUMBER] = new Regex(@"^(\b-?\d*\.?\d+\b)$"),
-            [JMCTokenType.STRING] = new Regex(@"^([""\'].*[""\'])$"),
-            [JMCTokenType.MULTILINE_STRING] = new Regex(@"^\`(?:.|\s)*\`$"),
-            [JMCTokenType.VARIABLE] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*$"),
-            [JMCTokenType.VARIABLE_CALL] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*\s*\."),
-            [JMCTokenType.LITERAL] = new Regex(@"^(?![0-9])\S+$")
+            [JMCTokenType.COMMENT] = new Regex(@"^\/\/.*$", _regexOptions),
+            [JMCTokenType.NUMBER] = new Regex(@"^(\b-?\d*\.?\d+\b)$", _regexOptions),
+            [JMCTokenType.STRING] = new Regex(@"^([""\'].*[""\'])$", _regexOptions),
+            [JMCTokenType.MULTILINE_STRING] = new Regex(@"^\`(?:.|\s)*\`$", _regexOptions),
+            [JMCTokenType.VARIABLE] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*$", _regexOptions),
+            [JMCTokenType.VARIABLE_CALL] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*\s*\.", _regexOptions),
+            [JMCTokenType.LITERAL] = new Regex(@"^(?![0-9])\S+$", _regexOptions)
         };
 
+        /// <summary>
+        /// Pattern for command tokens
+        /// </summary>
         private static readonly Dictionary<JMCTokenType, Regex> CommandTokenPatterns = new()
         {
-            [JMCTokenType.COMMAND_VARIABLE] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*$"),
-            [JMCTokenType.COMMAND_VARIABLE_CALL] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*\s*\."),
-            [JMCTokenType.COMMAND_INT_OR_LONG] = new Regex(@"^-?\d+$"),
-            [JMCTokenType.COMMAND_FLOAT_OR_DOUBLE] = new Regex(@"^-?\d*\.?\d+[lbs]?$"),
-            [JMCTokenType.COMMAND_LITERAL] = new Regex(@"^\w+$"),
-            [JMCTokenType.COMMAND_VALUE] = new Regex(@"^\S+$")
+            [JMCTokenType.COMMAND_VARIABLE] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*$", _regexOptions),
+            [JMCTokenType.COMMAND_VARIABLE_CALL] = new Regex(@"^\$[a-zA-Z_][0-9a-zA-Z_]*\s*\.", _regexOptions),
+            [JMCTokenType.COMMAND_INT_OR_LONG] = new Regex(@"^-?\d+$", _regexOptions),
+            [JMCTokenType.COMMAND_FLOAT_OR_DOUBLE] = new Regex(@"^-?\d*\.?\d+[lbs]?$", _regexOptions),
+            [JMCTokenType.COMMAND_LITERAL] = new Regex(@"^\w+$", _regexOptions),
+            [JMCTokenType.COMMAND_VALUE] = new Regex(@"^\S+$", _regexOptions)
         };
 
-        private static readonly JMCTokenType[] VariablesTypes = new JMCTokenType[]
+        private const string CONDITION_TOKEN = "CONDITION";
+        private const string COMMAND_TOKEN = "COMMAND";
+
+        /// <summary>
+        /// all type of variable tokens
+        /// </summary>
+        /// <remarks>
+        /// Use this when searching for variables
+        /// </remarks>
+        public static readonly JMCTokenType[] VariablesTypes = new JMCTokenType[]
         {
             JMCTokenType.VARIABLE, JMCTokenType.VARIABLE_CALL,
             JMCTokenType.COMMAND_VARIABLE, JMCTokenType.COMMAND_VARIABLE_CALL
@@ -54,7 +81,7 @@ namespace JMCLSP.Lexer.JMC
         }
 
         #region Query
-
+        
         public IEnumerable<JMCToken> Variables => Tokens.FindAll(v => VariablesTypes.Contains(v.TokenType));
         public IEnumerable<JMCToken> FunctionCalls
         {
@@ -110,15 +137,14 @@ namespace JMCLSP.Lexer.JMC
             var currentPos = 0;
 
             var arr = trimmedText.AsSpan();
-            for (var i = 0; i < trimmedText.Length; i++)
+            for (var i = 0; i < arr.Length;i++)
             {
-                ref var value = ref trimmedText[i];
+                ref var value = ref arr[i];
                 if (string.IsNullOrEmpty(value))
                 {
                     currentPos += splitedText[i].Length;
                     continue;
                 }
-
                 var token = Tokenize(value, currentPos);
                 if (token != null)
                 {
@@ -137,11 +163,10 @@ namespace JMCLSP.Lexer.JMC
         /// </summary>
         public void FormatFunctions()
         {
-            var arr = Tokens.ToArray().AsSpan();
-            for (var i = 0; i < arr.Length; i++)
+            for (var i = 0; i < Tokens.Count; i++)
             {
                 if (i - 1 == -1) continue;
-                ref var token = ref arr[i];
+                var token = Tokens[i];
                 if (token.TokenType == JMCTokenType.LITERAL && 
                     Tokens[i - 1].TokenType == JMCTokenType.FUNCTION)
                 {
@@ -224,11 +249,11 @@ namespace JMCLSP.Lexer.JMC
                 var preType = Tokens[^1].TokenType;
                 var type = GetTokenType(text);
                 if (Tokens[^2].TokenType == JMCTokenType.IF || 
-                    preType.ToString().StartsWith("IF_TOKEN", StringComparison.CurrentCulture))
+                    preType.ToString().StartsWith(CONDITION_TOKEN, StringComparison.CurrentCulture))
                 {
                     type = GetIfTokenType(type);
                 } 
-                else if (preType.ToString().StartsWith("COMMAND", StringComparison.CurrentCulture))
+                else if (preType.ToString().StartsWith(COMMAND_TOKEN, StringComparison.CurrentCulture))
                 {
                     type = GetCommandTokenType(text);
                 }
@@ -260,7 +285,7 @@ namespace JMCLSP.Lexer.JMC
         /// <returns></returns>
         public JMCToken? GetJMCToken(Position pos)
         {
-            var arr = Tokens.ToArray().AsSpan();
+            var arr = CollectionsMarshal.AsSpan(Tokens);
             for (var i = 0; i < Tokens.Count; i++)
             {
                 ref var c = ref arr[i];
@@ -316,7 +341,7 @@ namespace JMCLSP.Lexer.JMC
             var line = 0;
             var col = 0;
 
-            var arr = text.ToArray().AsSpan();
+            var arr = text.ToCharArray().AsSpan();
             for (var i = 0; i < offset; i++)
             {
                 ref var value = ref arr[i];
@@ -501,7 +526,7 @@ namespace JMCLSP.Lexer.JMC
                     break;
             }
 
-            return JMCTokenType.IF_TOKEN_UNKNOWN;
+            return JMCTokenType.CONDITION_UNKNOWN;
         }
 
         #region AsyncMethods

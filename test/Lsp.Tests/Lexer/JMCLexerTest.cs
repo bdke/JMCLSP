@@ -51,7 +51,7 @@ namespace Lsp.Tests.Lexer
         }
 
         [Theory]
-        [InlineData(@"class test{function test(){}function test2(){test.test2();playsound @s {};}}", "test2 test.test2")]
+        [InlineData(@"class test{function test(){if (tag) {}}function test2(){test.test2();}}", "test2 test.test2")]
         public void FormatFunctions_Tests(string text, string expected)
         {
             var lexer = new JMCLexer(text);

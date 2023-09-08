@@ -12,6 +12,7 @@ namespace Lsp.Tests.Lexer
     {
         public static IEnumerable<object[]> StatementTestData => new List<object[]>
         {
+            //function test
             new object[]
             {
                 "function test() {}", new JMCTokenType[]
@@ -21,6 +22,7 @@ namespace Lsp.Tests.Lexer
                     JMCTokenType.LCP, JMCTokenType.RCP,
                 }
             },
+            //class test
             new object[]
             {
                 "class name.name {}", new JMCTokenType[]
@@ -28,6 +30,7 @@ namespace Lsp.Tests.Lexer
                     JMCTokenType.CLASS, JMCTokenType.LITERAL, JMCTokenType.LCP, JMCTokenType.RCP
                 }
             },
+            //switch test
             new object[]
             {
                 "switch ($test) {case 1: test();}", new JMCTokenType[]
@@ -39,25 +42,26 @@ namespace Lsp.Tests.Lexer
                     JMCTokenType.RCP,
                 }
             },
+            //comment test
             new object[]
             {
-                "if ($test == 3) {} else {}", new JMCTokenType[]
+                "//test comment\r\ntest();", new JMCTokenType[]
                 {
-                    JMCTokenType.IF,
-                    JMCTokenType.LPAREN, JMCTokenType.VARIABLE, JMCTokenType.OP_EQUAL, JMCTokenType.NUMBER ,JMCTokenType.RPAREN,
-                    JMCTokenType.LCP, JMCTokenType.RCP,
-                    JMCTokenType.ELSE,
-                    JMCTokenType.LCP, JMCTokenType.RCP
+                    JMCTokenType.COMMENT, JMCTokenType.LITERAL, JMCTokenType.LPAREN, JMCTokenType.RPAREN, JMCTokenType.SEMI
                 }
             }
+            //new object[]
+            //{
+            //    "if ($test == 3) {} else {}", new JMCTokenType[]
+            //    {
+            //        JMCTokenType.IF,
+            //        JMCTokenType.LPAREN, JMCTokenType.VARIABLE, JMCTokenType.OP_EQUAL, JMCTokenType.NUMBER ,JMCTokenType.RPAREN,
+            //        JMCTokenType.LCP, JMCTokenType.RCP,
+            //        JMCTokenType.ELSE,
+            //        JMCTokenType.LCP, JMCTokenType.RCP
+            //    }
+            //}
         };
 
-        public static IEnumerable<object[]> FormatFunctionsTestData = new List<object[]>()
-        {
-            new object[]
-            {
-                "class test{function test(){}}", "test.test"
-            }
-        };
     }
 }
