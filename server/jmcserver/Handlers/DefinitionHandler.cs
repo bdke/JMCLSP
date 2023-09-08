@@ -16,7 +16,7 @@ namespace JMCLSP.Handlers
 
         public override async Task<LocationOrLocationLinks> Handle(DefinitionParams request, CancellationToken cancellationToken)
         {
-            var file = StaticData.Workspaces.GetJMCFile(request.TextDocument.Uri);
+            var file = ExtensionData.Workspaces.GetJMCFile(request.TextDocument.Uri);
             if (file == null)
             {
                 var link = new List<LocationOrLocationLink>();
@@ -35,7 +35,24 @@ namespace JMCLSP.Handlers
                 if (currentToken.TokenType == JMCTokenType.LITERAL &&
                     lexerTokens[tokenIndex + 1].TokenType == JMCTokenType.LPAREN)
                 {
-
+                    var defines = ExtensionData.Workspaces.GetJMCFunctionDefines();
+                    foreach (var define in defines)
+                    {
+                        var result = define.Tokens.Find(v => v.Value.Split(' ').Last() == currentToken.Value);
+                        //TODO: only first token is modified
+                        if (result != null)
+                        {
+                            var location = new LocationLink
+                            {
+                                OriginSelectionRange = currentToken.Range,
+                                TargetRange = result.Range,
+                                TargetSelectionRange = result.Range,
+                                TargetUri = define.DocumentUri
+                            };
+                            link.Add(location);
+                            break;
+                        }
+                    }
                 }
 
                 _logger.LogInformation($"Definition Token: {LoggerHelper.ObjectToJson(currentToken)}");

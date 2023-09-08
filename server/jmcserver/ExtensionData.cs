@@ -11,14 +11,14 @@ using Newtonsoft.Json;
 
 namespace JMCLSP
 {
-    internal class StaticData
+    internal class ExtensionData
     {
         public static readonly WorkspaceContainer Workspaces = new();
         public static readonly string LogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Logs");
-        public static string MinecraftVersion;
+        public static string MinecraftVersion = string.Empty;
         public static CommandData CommandData { get; set; }
 
-        public StaticData()
+        public ExtensionData()
         {
             MinecraftVersion = "1.20.1";
             CommandData = new(GetCommandNodes(MinecraftVersion));

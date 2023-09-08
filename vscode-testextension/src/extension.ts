@@ -35,7 +35,7 @@ export function activate(context: ExtensionContext) {
         // debug: { command: serverExe, args: ['-lsp', '-d'] }
         debug: {
             command: "C:\\Users\\User\\Documents\\Github\\JMC-Syntax-Highlighting-cslsp\\server\\jmcserver\\bin\\Debug\\net6.0\\win7-x64\\JMCLSP.exe",
-            args: ["-lsp", "-d"],
+            args: ["-lsp", "-d", "--debug"],
             transport: TransportKind.pipe,
             runtime: "",
         },

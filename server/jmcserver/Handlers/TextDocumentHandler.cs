@@ -42,7 +42,7 @@ namespace JMCLSP.Handlers
         {
             foreach (var change in request.ContentChanges)
             {
-                var doc = StaticData.Workspaces.GetJMCFile(request.TextDocument.Uri);
+                var doc = ExtensionData.Workspaces.GetJMCFile(request.TextDocument.Uri);
                 if (doc == null)
                     continue;
                 var lexer = doc.Lexer;

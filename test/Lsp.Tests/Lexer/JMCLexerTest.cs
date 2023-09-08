@@ -30,7 +30,7 @@ namespace Lsp.Tests.Lexer
         }
 
         [Theory]
-        [MemberData(nameof(StatementTestData))]
+        [MemberData(nameof(JMCLexerTestCase.StatementTestData), MemberType = typeof(JMCLexerTestCase))]
         public void Statement_Tests(string text, IEnumerable<JMCTokenType> expected)
         {
             var lexer = new JMCLexer(text);
@@ -50,46 +50,13 @@ namespace Lsp.Tests.Lexer
             Assert.Equal(expected, type);
         }
 
-        public static IEnumerable<object[]> StatementTestData => new List<object[]>
+        [Theory]
+        [InlineData(@"class test{function test(){}function test2(){test.test2();playsound @s {};}}", "test2 test.test2")]
+        public void FormatFunctions_Tests(string text, string expected)
         {
-            new object[]
-            {
-                "function test() {}", new JMCTokenType[]
-                {
-                    JMCTokenType.FUNCTION, JMCTokenType.LITERAL, 
-                    JMCTokenType.LPAREN, JMCTokenType.RPAREN, 
-                    JMCTokenType.LCP, JMCTokenType.RCP,
-                }
-            },
-            new object[]
-            {
-                "class name.name {}", new JMCTokenType[]
-                {
-                    JMCTokenType.CLASS, JMCTokenType.LITERAL, JMCTokenType.LCP, JMCTokenType.RCP
-                }
-            },
-            new object[]
-            {
-                "switch ($test) {case 1: test();}", new JMCTokenType[]
-                {
-                    JMCTokenType.SWITCH, JMCTokenType.LPAREN, JMCTokenType.VARIABLE, JMCTokenType.RPAREN,
-                    JMCTokenType.LCP, 
-                    JMCTokenType.CASE, JMCTokenType.NUMBER, JMCTokenType.COLON,
-                    JMCTokenType.LITERAL, JMCTokenType.LPAREN, JMCTokenType.RPAREN, JMCTokenType.SEMI,
-                    JMCTokenType.RCP,
-                }
-            },
-            new object[]
-            {
-                "if ($test == 3) {} else {}", new JMCTokenType[]
-                {
-                    JMCTokenType.IF, 
-                    JMCTokenType.LPAREN, JMCTokenType.VARIABLE, JMCTokenType.OP_EQUAL, JMCTokenType.NUMBER ,JMCTokenType.RPAREN,
-                    JMCTokenType.LCP, JMCTokenType.RCP,
-                    JMCTokenType.ELSE,
-                    JMCTokenType.LCP, JMCTokenType.RCP
-                }
-            }
-        };
+            var lexer = new JMCLexer(text);
+            var functionDefine = lexer.FunctionDefines.ElementAt(1);
+            functionDefine.Value.Should().Be(expected);
+        }
     }
 }

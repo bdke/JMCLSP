@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using JMCLSP.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,17 +11,19 @@ using Serilog;
 namespace JMCLSP
 {
 
-    internal class Program
+    public class Program
     {
-
         private static async Task Main(string[] args)
         {
+
             Log.Logger = new LoggerConfiguration()
                         .Enrich.FromLogContext()
-                        .WriteTo.File($"{StaticData.LogPath}/jmclsp.log", rollingInterval: RollingInterval.Day)
+                        .WriteTo.File($"{ExtensionData.LogPath}/jmclsp.log", rollingInterval: RollingInterval.Day)
                         .MinimumLevel.Verbose()
                         .CreateLogger();
-            var data = new StaticData();
+
+
+            var data = new ExtensionData();
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
@@ -118,14 +121,14 @@ namespace JMCLSP
                                 foreach (var folder in folders)
                                 {
                                     var workspace = new Datas.Workspace.Workspace(folder.Uri);
-                                    StaticData.Workspaces.Add(workspace);
+                                    ExtensionData.Workspaces.Add(workspace);
                                 }
                             }
                         )
                        .OnStarted(
                             async (languageServer, token) =>
                             {
-                                languageServer.LogInfo(StaticData.LogPath);
+                                languageServer.LogInfo(ExtensionData.LogPath);
                                 languageServer.LogInfo("Server Started");
                             }
                         )

@@ -9,7 +9,7 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "${workspaceRoot}/sample/SampleServer/SampleServer.csproj"
+                "${workspaceRoot}/server/jmcserver/JMCLSP.csproj"
             ],
             "problemMatcher": "$msCompile",
             "group": {

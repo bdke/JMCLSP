@@ -66,6 +66,8 @@ namespace JMCLSP.Lexer.JMC.Types
         COMMAND_CARET,
         COMMAND_TILDE,
         COMMAND_VARIABLE_CALL,
-        COMMAND_VARIABLE
+        COMMAND_VARIABLE,
+        IF_TOKEN_LITERAL,
+        IF_TOKEN_UNKNOWN
     }
 }
