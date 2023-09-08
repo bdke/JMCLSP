@@ -39,7 +39,6 @@ namespace JMCLSP.Handlers
                     foreach (var define in defines)
                     {
                         var result = define.Tokens.Find(v => v.Value.Split(' ').Last() == currentToken.Value);
-                        //TODO: only first token is modified
                         if (result != null)
                         {
                             var location = new LocationLink

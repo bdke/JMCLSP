@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 
 namespace JMCLSP.Datas.Minecraft.Command
 {
-    //TODO: finish the node
     internal class CommandNode
     {
         [JsonProperty("type")]

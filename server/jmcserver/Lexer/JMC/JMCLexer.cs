@@ -149,7 +149,6 @@ namespace JMCLSP.Lexer.JMC
                     {
                         if (range.Value.Contains(token.Range.Start))
                         {
-                            Log.Debug(LoggerHelper.ObjectToJson(range));
                             token.Value += $" {range.Key}.{token.Value}";
                         }
                     }
@@ -176,7 +175,6 @@ namespace JMCLSP.Lexer.JMC
                     for (i += 2; i < Tokens.Count ;i++)
                     {
                         var c = Tokens[i];
-                        Log.Debug(LoggerHelper.ObjectToJson(c));
                         if (c.TokenType == JMCTokenType.LCP) parenCount++;
                         else if (c.TokenType == JMCTokenType.RCP) parenCount--;
                         if (parenCount == 0)
@@ -185,7 +183,6 @@ namespace JMCLSP.Lexer.JMC
                             var startPos = token.Offset;
                             var end = OffsetToPosition(endPos, RawText);
                             var start = OffsetToPosition(startPos, RawText);
-                            Log.Debug($"{className}: {endPos} {startPos}");
                             yield return new(className ,new Range(start, end));
                             break;
                         }
