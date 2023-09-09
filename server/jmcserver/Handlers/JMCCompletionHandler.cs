@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using JMCLSP.Datas;
 using JMCLSP.Helper;
+using JMCLSP.Lexer.JMC;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
@@ -60,16 +61,25 @@ namespace JMCLSP.Handlers
                             InsertText = value.Type == FunctionHierarchyType.CLASS ? value.FuncName : $"{value.FuncName}()",
                         }));
                     }
+                    else if (JMCLexer.VariablesTypes.Contains(token.TokenType))
+                    {
+                        list.Add(new()
+                        {
+                            Label = "get",
+                            Kind = CompletionItemKind.Function,
+                            InsertText = "get()"
+                        });
+                        return list;
+                    }
                 }
             }
             var vars = ExtensionData.Workspaces.GetJMCVariables()
-            .SelectMany(v => v.Tokens)
+                .SelectMany(v => v.Tokens)
                 .Where(v => !v.Value.EndsWith(".get", StringComparison.CurrentCulture))
                 .DistinctBy(v => v.Value);
 
             //normal completion
             var funcValue = FunctionHierarchy.GetFirstHierarchy(funcs.Select(v => v.Value).ToArray());
-            _logger.LogDebug(LoggerHelper.ObjectToJson(funcValue));
             foreach (var value in funcValue)
             {
                 list.Add(new()
