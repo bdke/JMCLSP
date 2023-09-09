@@ -35,7 +35,7 @@ namespace JMCLSP.Datas
             return list.Distinct().ToList();
         }
 
-        public static List<QueryData> GetHierachy(IEnumerable<string> funcs, IEnumerable<string> preStrings)
+        public static IEnumerable<QueryData> GetHierachy(IEnumerable<string> funcs, IEnumerable<string> preStrings)
         {
             var result = new List<QueryData>();
 
@@ -52,7 +52,7 @@ namespace JMCLSP.Datas
                 else result.Add(new(v[depth], FunctionHierarchyType.FUNC));
             }
 
-            return result;
+            return result.Distinct();
         }
     }
 
