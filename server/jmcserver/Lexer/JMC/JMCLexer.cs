@@ -307,7 +307,7 @@ namespace JMCLSP.Lexer.JMC
         /// </summary>
         /// <param name="pos"></param>
         /// <returns></returns>
-        private static int PositionToOffset(Position pos, string text)
+        public static int PositionToOffset(Position pos, string text)
         {
             var line = pos.Line;
 
@@ -336,7 +336,7 @@ namespace JMCLSP.Lexer.JMC
         /// <param name="offset"></param>
         /// <param name="text">the whole document text</param>
         /// <returns><see cref="Position"/> of the offset</returns>
-        private static Position OffsetToPosition(int offset, string text)
+        public static Position OffsetToPosition(int offset, string text)
         {
             var line = 0;
             var col = 0;
