@@ -64,10 +64,26 @@ namespace JMCLSP.Lexer.JMC
         /// <remarks>
         /// Use this when searching for variables
         /// </remarks>
-        public static readonly JMCTokenType[] VariablesTypes = new JMCTokenType[]
+        public static readonly JMCTokenType[] VariableTypes = new JMCTokenType[]
         {
             JMCTokenType.VARIABLE, JMCTokenType.VARIABLE_CALL,
             JMCTokenType.COMMAND_VARIABLE, JMCTokenType.COMMAND_VARIABLE_CALL
+        };
+
+        /// <summary>
+        /// variable type for $xxx.get()
+        /// </summary>
+        public static readonly JMCTokenType[] VariableCallTypes = new JMCTokenType[]
+        {
+            JMCTokenType.VARIABLE_CALL, JMCTokenType.COMMAND_VARIABLE_CALL
+        };
+
+        /// <summary>
+        /// variable type for $xxx
+        /// </summary>
+        public static readonly JMCTokenType[] NormalVariableTypes = new JMCTokenType[]
+        {
+            JMCTokenType.VARIABLE, JMCTokenType.COMMAND_VARIABLE
         };
 
         /// <summary>
@@ -82,7 +98,7 @@ namespace JMCLSP.Lexer.JMC
 
         #region Query
         
-        public IEnumerable<JMCToken> Variables => Tokens.FindAll(v => VariablesTypes.Contains(v.TokenType));
+        public IEnumerable<JMCToken> Variables => Tokens.FindAll(v => VariableTypes.Contains(v.TokenType));
         public IEnumerable<JMCToken> FunctionCalls
         {
             get
@@ -534,13 +550,13 @@ namespace JMCLSP.Lexer.JMC
         /// <inheritdoc cref="ChangeRawText(TextDocumentContentChangeEvent)"/>
         /// </summary>
         /// <returns></returns>
-        public async Task ChangeRawTextAsync(TextDocumentContentChangeEvent change) => ChangeRawText(change);
+        public async Task ChangeRawTextAsync(TextDocumentContentChangeEvent change) => await Task.Run(() => ChangeRawText(change));
 
         /// <summary>
         /// <inheritdoc cref="InitTokens"/>
         /// </summary>
         /// <returns></returns>
-        public async Task InitTokensAsync() => InitTokens();
+        public async Task InitTokensAsync() => await Task.Run(InitTokens);
         #endregion
     }
 }

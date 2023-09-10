@@ -56,10 +56,9 @@ namespace JMCLSP.Handlers
                         }
                     }
                 }
-                else if (JMCLexer.VariablesTypes.Contains(currentToken.TokenType))
+                else if (JMCLexer.VariableTypes.Contains(currentToken.TokenType))
                 {
-                    if (currentToken.TokenType == JMCTokenType.VARIABLE_CALL || 
-                        currentToken.TokenType == JMCTokenType.COMMAND_VARIABLE_CALL)
+                    if (JMCLexer.VariableCallTypes.Contains(currentToken.TokenType))
                     {
                         var start = currentToken.Range.Start;
                         var newOffset = currentToken.Offset + currentToken.Value.Length - 4;
@@ -68,17 +67,18 @@ namespace JMCLSP.Handlers
                         var vars = ExtensionData.Workspaces.GetJMCVariables();
                         vars.ForEach(v =>
                         {
-                            var matches = v.Tokens.Where(x => x.Value.StartsWith(currentToken.Value[..^4], StringComparison.CurrentCulture));
+                            var matches = v.Tokens.Where(x => x.Value.Split('.').ElementAt(0) == currentToken.Value[..^4]);
                             var arr = matches.ToArray().AsSpan();
                             for (var i = 0; i < arr.Length; i++) 
                             {
                                 ref var match = ref arr[i];
-                                if (match.TokenType == JMCTokenType.VARIABLE_CALL ||
-                                    match.TokenType == JMCTokenType.COMMAND_VARIABLE_CALL)
+                                if (JMCLexer.VariableCallTypes.Contains(match.TokenType))
                                 {
+                                    var fileLexer = ExtensionData.Workspaces.GetJMCFile(v.DocumentUri)?.Lexer;
+                                    if (fileLexer == null) continue;
                                     var offset = match.Offset + match.Value.Length - 4;
                                     var start = match.Range.Start;
-                                    var end = JMCLexer.OffsetToPosition(offset, lexer.RawText);
+                                    var end = JMCLexer.OffsetToPosition(offset, fileLexer.RawText);
                                     var newRange = new Range(start, end);
                                     var location = new LocationLink()
                                     {
@@ -109,17 +109,18 @@ namespace JMCLSP.Handlers
                         var vars = ExtensionData.Workspaces.GetJMCVariables();
                         vars.ForEach(v =>
                         {
-                            var matches = v.Tokens.Where(v => v.Value.StartsWith(currentToken.Value, StringComparison.CurrentCulture));
+                            var matches = v.Tokens.Where(v => v.Value.Split('.').ElementAt(0) == currentToken.Value);
                             var arr = matches.ToArray().AsSpan();
                             for (var i = 0;i < arr.Length; i++)
                             {
                                 ref var match = ref arr[i];
-                                if (match.TokenType == JMCTokenType.VARIABLE_CALL ||
-                                    match.TokenType == JMCTokenType.COMMAND_VARIABLE_CALL)
+                                if (JMCLexer.VariableCallTypes.Contains(match.TokenType))
                                 {
+                                    var fileLexer = ExtensionData.Workspaces.GetJMCFile(v.DocumentUri)?.Lexer;
+                                    if (fileLexer == null) continue;
                                     var offset = match.Offset + match.Value.Length - 4;
                                     var start = match.Range.Start;
-                                    var end = JMCLexer.OffsetToPosition(offset, lexer.RawText);
+                                    var end = JMCLexer.OffsetToPosition(offset, fileLexer.RawText);
                                     var newRange = new Range(start, end);
                                     var location = new LocationLink()
                                     {

@@ -61,7 +61,7 @@ namespace JMCLSP.Handlers
                             InsertText = value.Type == FunctionHierarchyType.CLASS ? value.FuncName : $"{value.FuncName}()",
                         }));
                     }
-                    else if (JMCLexer.VariablesTypes.Contains(token.TokenType))
+                    else if (JMCLexer.VariableTypes.Contains(token.TokenType))
                     {
                         list.Add(new()
                         {

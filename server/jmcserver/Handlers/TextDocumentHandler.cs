@@ -49,8 +49,8 @@ namespace JMCLSP.Handlers
 
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
-                await lexer.ChangeRawTextAsync(change);
-                await lexer.InitTokensAsync();
+                lexer.ChangeRawText(change);
+                lexer.InitTokens();
                 stopwatch.Stop();
 
                 _logger.LogInformation($"Time elapsed for tokenizing: {stopwatch.ElapsedMilliseconds}");
